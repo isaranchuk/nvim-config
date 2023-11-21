@@ -20,6 +20,10 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+
+    -- Rust dependencies
+    'simrat39/rust-tools.nvim',
+    'nvim-lua/plenary.nvim'
   },
   config = function()
     local dap = require 'dap'
@@ -83,5 +87,56 @@ return {
 
     -- Install golang specific config
     require('dap-go').setup()
+
+    -- Install rust specific config
+
+    -- Update this path
+    -- local extension_path = vim.env.HOME .. '/.vscode/extensions/vadimcn.vscode-lldb-1.10.0/'
+    -- local codelldb_path = extension_path .. 'adapter/codelldb'
+    -- local liblldb_path = extension_path .. 'lldb/lib'
+    -- local this_os = vim.loop.os_uname().sysname;
+    --
+    -- -- The path in windows is different
+    -- if this_os:find "Windows" then
+    --   codelldb_path = extension_path .. "adapter\\codelldb.exe"
+    --   liblldb_path = extension_path .. "lldb\\bin\\liblldb.dll"
+    -- else
+    --   -- The liblldb extension is .so for linux and .dylib for macOS
+    --   liblldb_path = liblldb_path .. (this_os == "Linux" and ".so" or ".dylib")
+    -- end
+    --
+    -- local opts = {
+    --   -- ... other configs
+    --   dap = {
+    --       adapter = require('rust-tools.dap').get_codelldb_adapter(
+    --           codelldb_path, liblldb_path)
+    --   }
+    -- }
+
+    require('rust-tools').setup()
+
+    dap.adapters.codelldb = {
+      type = 'server',
+      port = "${port}",
+      executable = {
+        -- Change this to your path!
+        command = '/Users/igor/Downloads/codelldb-x86_64-darwin/adapter/codelldb',
+        args = {"--port", "${port}"},
+      }
+    }
+
+    dap.configurations.rust= {
+      {
+        name = "Launch file",
+        type = "codelldb",
+        request = "launch",
+        program = function()
+          return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+      },
+    }
+
   end,
 }
